@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+    <p>Click the button to trigger a function that will load xml.</p>
+    <button onclick="parseXML()">parseXML</button>
+    
+    <div class="main">
+        <form action="#" method="post" name="form_name" id="form_id" class="form_class" >
+            <h2>Javascript Search Example</h2>
+            <label>Search :</label>
+            <input type="text" name="search" id="search" placeholder="search" />
+            <input type="button" name="submit_search" id="btn_search" value="Submit by search" onclick="submit_by_search()"/>
+        </form>
+    </div>
+
+    <p id="demo">XML Test</p>
+
+    <script>
+        var Books = [];
+        var Company = [];
+        var Employees = [];
+        var Employees_level2 = [];
+        
+    function submit_by_search() {
+        var search = document.getElementById("search").value;
+        alert("Search: " + search);
+        var result;
+        
+        for( i=0;i<Books.length;i++ ) {
+            for( j=0;j<Books[i].Company.length; j++ ) {
+
+                if( Books[i].Company[j].name === search ) {
+                    result = Books[i].Company[j].name;
+                    alert("Tag found:" + i + j + Books[i].Company[j].Employees[0].textContent);
+                    break;
+                }
+                
+                for( k=0;k<Books[i].Company[j].Employees.length; k++ ) {
+                    if (Books[i].Company[j].Employees[k].name != null) {
+                        if( Books[i].Company[j].Employees[k].name === search ) {
+                            result = Books[i].Company[j].Employees[k].name;
+                            alert("Tag found: " + i + j + k);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        alert("Found End");
+    }
+        
+    function parseXML() {
+        alert("parseXML");
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                createArray(xhttp);
+                //createHTML();
+            }
+        };
+        xhttp.open("GET", "./books_long.xml", true);
+        xhttp.send();
+    }
+        
+
+        function createArray(xml) {
+            alert("createArray");
+
+            var xmlDoc = xml.responseXML;
+            var xmlCompany = xmlDoc.getElementsByTagName("Company");
+            var xmlEmployee = xmlDoc.getElementsByTagName("Employee");
+
+            Books = [];
+            for(k=0;k<xmlCompany.length;k++){
+                Books[k]={};             
+                Books[k].item=xmlDoc.getElementsByTagName("Company")[k].getAttribute('item');
+                Company = [];
+                
+                for(i=0;i<xmlDoc.getElementsByTagName("Company")[k].children.length;i++){
+                    Company[i]={};
+                    Company[i].name=xmlDoc.getElementsByTagName("Company")[k].children[i].getAttribute('name');
+                    child = xmlDoc.getElementsByTagName("Company")[k].children[i].children;
+                    Employees = [];
+                    
+                    for(var a=0;a<child.length;a++){
+                        Employees[a]={};
+                        var tag = child[a].tagName;
+                        var textContent = child[a].textContent;
+                        Employees[a].name=child[a].getAttribute('name');
+                        Employees[a].tag = tag;
+                        Employees[a].textContent = textContent;
+                        Employees_level2 = [];
+                        
+                        for(var b=0;b<child[a].children.length;b++){
+                            Employees_level2[b]={};
+                            var tag = child[a].children[b].tagName;
+                            var textContent = child[a].children[b].textContent;
+                            Employees_level2[b].tag = tag;
+                            Employees_level2[b].textContent = textContent;
+                            
+                        }
+                        Employees[a].Employees_level2=Employees_level2;     
+                    }
+                    Company[i].Employees=Employees;
+                }
+                Books[k].Company=Company;
+            }
+        }
+            
+        function createHTML() {
+            alert("createHTML");
+            for(k=0;k<Books.length;k++){
+                for(i=0;i<Books[k].Company.length;i++){
+                    document.getElementById("demo").innerHTML += "<br><br>Item: ";
+                    if (Books[k].item != null) {
+                        document.getElementById("demo").innerHTML += Books[k].item;
+                    } else {
+                        document.getElementById("demo").innerHTML += "Not Defined";
+                    }
+
+                    document.getElementById("demo").innerHTML += "<br>Title: ";
+                    document.getElementById("demo").innerHTML += Books[k].Company[i].name;
+
+                    if (Books[k].Company[i].Employees[0] != null) {
+                        //alert("Alert 1: " + Books[k].Company[i].Employees.length);
+
+                        for(l=0;l<Books[k].Company[i].Employees.length;l++){
+
+                            var index = Books[k].Company[i].Employees[l].name;
+                            if (index != null) {
+                                document.getElementById("demo").innerHTML += "<br>Title: ";
+                                document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].name;
+                            }
+
+                            for(j=0;j<Books[k].Company[i].Employees[l].Employees_level2.length;j++){    
+                                var index = Books[k].Company[i].Employees[l].Employees_level2[j].tag.indexOf("FirstName");
+                                //alert("Firstname");
+                                if (index != -1) {
+                                    document.getElementById("demo").innerHTML += "<br>FirstName: ";
+                                    document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].Employees_level2[j].textContent;                      
+                                }
+                                index = Books[k].Company[i].Employees[l].Employees_level2[j].tag.indexOf("LastName");
+                                if (index != -1) {
+                                    document.getElementById("demo").innerHTML += "<br>LastName: ";
+                                    document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].Employees_level2[j].textContent;                      
+                                }
+                                index = Books[k].Company[i].Employees[l].Employees_level2[j].tag.indexOf("ContactNo");
+                                if (index != -1) {
+                                    document.getElementById("demo").innerHTML += "<br>ContactNo: ";
+                                    document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].Employees_level2[j].textContent;                      
+                                }
+                                index = Books[k].Company[i].Employees[l].Employees_level2[j].tag.indexOf("Email");
+                                if (index != -1) {
+                                    document.getElementById("demo").innerHTML += "<br>Email: ";
+                                    document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].Employees_level2[j].textContent;                      
+                                }
+                                index = Books[k].Company[i].Employees[l].Employees_level2[j].tag.indexOf("value");
+                                if (index != -1) {
+                                    document.getElementById("demo").innerHTML += "<br>Value: ";
+                                    document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[l].Employees_level2[j].textContent;                      
+                                }
+                            }
+                        }
+                    }
+
+                    for(j=0;j<Books[k].Company[i].Employees.length;j++){
+                        var index = Books[k].Company[i].Employees[j].tag.indexOf("FirstName");
+                        if (index != -1) {
+                            document.getElementById("demo").innerHTML += "<br>FirstName: ";
+                            document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[j].textContent;                      
+                        }
+                        index = Books[k].Company[i].Employees[j].tag.indexOf("LastName");
+                        if (index != -1) {
+                            document.getElementById("demo").innerHTML += "<br>LastName: ";
+                            document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[j].textContent;                       
+                        }
+                        index = Books[k].Company[i].Employees[j].tag.indexOf("ContactNo");
+                        if (index != -1) {
+                            document.getElementById("demo").innerHTML += "<br>ContactNo: ";
+                            document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[j].textContent;                       
+                        }
+                        index = Books[k].Company[i].Employees[j].tag.indexOf("Email");
+                        if (index != -1) {
+                            document.getElementById("demo").innerHTML += "<br>Email: ";
+                            document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[j].textContent;                       
+                        }
+                        index = Books[k].Company[i].Employees[j].tag.indexOf("value");
+                        if (index != -1) {
+                            document.getElementById("demo").innerHTML += "<br>Value: ";
+                            document.getElementById("demo").innerHTML += Books[k].Company[i].Employees[j].textContent;                       
+                        }
+                    }
+                }
+            }
+        }
+        //alert("Script End");
+//    }
+    </script>
+
+</body>
+</html>
